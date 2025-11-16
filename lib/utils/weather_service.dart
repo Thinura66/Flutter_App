@@ -30,36 +30,27 @@ class WeatherService {
   static Future<WeatherData> fetchWeather(double lat, double lon) async {
     final url = buildRequestUrl(lat, lon);
 
-    try {
-      final response = await http.get(Uri.parse(url)).timeout(
-        const Duration(seconds: 10),
+    final response = await http.get(Uri.parse(url)).timeout(
+      const Duration(seconds: 10),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final currentWeather = data['current_weather'];
+
+      final weatherData = WeatherData(
+        temperature: currentWeather['temperature'].toDouble(),
+        windSpeed: currentWeather['windspeed'].toDouble(),
+        weatherCode: currentWeather['weathercode'],
+        lastUpdated: DateTime.now(),
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final currentWeather = data['current_weather'];
+      // Cache the successful result
+      await _cacheWeatherData(weatherData);
 
-        final weatherData = WeatherData(
-          temperature: currentWeather['temperature'].toDouble(),
-          windSpeed: currentWeather['windspeed'].toDouble(),
-          weatherCode: currentWeather['weathercode'],
-          lastUpdated: DateTime.now(),
-        );
-
-        // Cache the successful result
-        await _cacheWeatherData(weatherData);
-
-        return weatherData;
-      } else {
-        throw Exception('Failed to load weather data: ${response.statusCode}');
-      }
-    } catch (e) {
-      // Try to return cached data if available
-      final cachedData = await getCachedWeather();
-      if (cachedData != null) {
-        return cachedData.copyWith(isCached: true);
-      }
-      rethrow;
+      return weatherData;
+    } else {
+      throw Exception('Failed to load weather data: ${response.statusCode}');
     }
   }
 
