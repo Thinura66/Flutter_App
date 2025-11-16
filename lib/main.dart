@@ -70,7 +70,7 @@ class WeatherScreen extends StatefulWidget {
 }
 
 class _WeatherScreenState extends State<WeatherScreen> {
-  final TextEditingController _indexController = TextEditingController(text: '224097E');
+  final TextEditingController _indexController = TextEditingController();
   
   double? _latitude;
   double? _longitude;
@@ -82,7 +82,6 @@ class _WeatherScreenState extends State<WeatherScreen> {
   @override
   void initState() {
     super.initState();
-    _calculateCoordinates();
     _loadCachedData();
   }
 
